@@ -158,11 +158,20 @@ class GaragePiController:
                                'Door switch activated when in {0} state.'.format(self.get_status().status_text))
 
         with self.__relay_lock:
-            # Relay triggers on low so just setting as output will trigger
-            # and closing will switch back.
-            GPIO.setup(app.config['RELAY_PIN'], GPIO.OUT)
-            time.sleep(0.5)
-            GPIO.setup(app.config['RELAY_PIN'], GPIO.IN)
+            if app.config['RELAY_TRIGGER_LEVEL'] == 'HIGH':
+                # Relay triggers on high so set the pin output to 1 then 0 
+                # then switch it back to an input
+                GPIO.setup(app.config['RELAY_PIN'], GPIO.OUT)
+                GPIO.output(app.config['RELAY_PIN'], GPIO.HIGH)
+                time.sleep(0.5)
+                GPIO.output(app.config['RELAY_PIN'], GPIO.LOW)
+                GPIO.setup(app.config['RELAY_PIN'], GPIO.IN)
+            else:
+                # Relay triggers on low so just setting as output will trigger
+                # and closing will switch back.
+                GPIO.setup(app.config['RELAY_PIN'], GPIO.OUT)
+                time.sleep(0.5)
+                GPIO.setup(app.config['RELAY_PIN'], GPIO.IN)
 
     def check_door_open_for_warning(self):
         if self.__door_state and app.warning_event is not None:
